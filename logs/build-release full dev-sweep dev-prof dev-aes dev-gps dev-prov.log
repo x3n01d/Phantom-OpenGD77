@@ -1,0 +1,1 @@
+Makefile:123: *** Unknown PROFILE 'release full dev-sweep dev-prof dev-aes dev-gps dev-prov'. Known profiles: release full dev-sweep dev-prof dev-aes dev-gps dev-prov.  Останов.

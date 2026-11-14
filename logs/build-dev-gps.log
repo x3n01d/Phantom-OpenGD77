@@ -1,0 +1,15 @@
+rm -rf build-dev-gps
+make all
+make[1]: вход в каталог «/home/mint/TYT/Phantom-13.11.2026/MDUV380_firmware»
+arm-none-eabi-gcc -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard -DGITVERSION=925d1cb -DUSE_HAL_DRIVER -DSTM32F405xx -DPLATFORM_MDUV380 -DPLATFORM_VARIANT_UV380_PLUS_10W -DNDEBUG -DENABLE_GPS_NMEA_LOG -I. -ICore/Inc -IDrivers/CMSIS/Device/ST/STM32F4xx/Include -IDrivers/CMSIS/Include -IDrivers/STM32F4xx_HAL_Driver/Inc -IDrivers/STM32F4xx_HAL_Driver/Inc/Legacy -IMiddlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc -IMiddlewares/ST/STM32_USB_Device_Library/Core/Inc -IMiddlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 -IMiddlewares/Third_Party/FreeRTOS/Source/include -IMiddlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F -IUSB_DEVICE/App -IUSB_DEVICE/Target -Iapplication/include -Os -g3 -ffunction-sections -fdata-sections -Wall -MMD -MP -c Core/Src/freertos.c -o build-dev-gps/Core/Src/freertos.o
+make[1]: arm-none-eabi-gcc: Нет такого файла или каталога
+make[1]: *** [Makefile:181: build-dev-gps/Core/Src/freertos.o] Ошибка 127
+make[1]: *** Ожидание завершения заданий…
+arm-none-eabi-gcc -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard -DGITVERSION=925d1cb -DUSE_HAL_DRIVER -DSTM32F405xx -DPLATFORM_MDUV380 -DPLATFORM_VARIANT_UV380_PLUS_10W -DNDEBUG -DENABLE_GPS_NMEA_LOG -I. -ICore/Inc -IDrivers/CMSIS/Device/ST/STM32F4xx/Include -IDrivers/CMSIS/Include -IDrivers/STM32F4xx_HAL_Driver/Inc -IDrivers/STM32F4xx_HAL_Driver/Inc/Legacy -IMiddlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc -IMiddlewares/ST/STM32_USB_Device_Library/Core/Inc -IMiddlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 -IMiddlewares/Third_Party/FreeRTOS/Source/include -IMiddlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F -IUSB_DEVICE/App -IUSB_DEVICE/Target -Iapplication/include -Os -g3 -ffunction-sections -fdata-sections -Wall -MMD -MP -c Core/Src/main.c -o build-dev-gps/Core/Src/main.o
+make[1]: arm-none-eabi-gcc: Нет такого файла или каталога
+make[1]: *** [Makefile:181: build-dev-gps/Core/Src/main.o] Ошибка 127
+arm-none-eabi-gcc -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard -DGITVERSION=925d1cb -DUSE_HAL_DRIVER -DSTM32F405xx -DPLATFORM_MDUV380 -DPLATFORM_VARIANT_UV380_PLUS_10W -DNDEBUG -DENABLE_GPS_NMEA_LOG -I. -ICore/Inc -IDrivers/CMSIS/Device/ST/STM32F4xx/Include -IDrivers/CMSIS/Include -IDrivers/STM32F4xx_HAL_Driver/Inc -IDrivers/STM32F4xx_HAL_Driver/Inc/Legacy -IMiddlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc -IMiddlewares/ST/STM32_USB_Device_Library/Core/Inc -IMiddlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 -IMiddlewares/Third_Party/FreeRTOS/Source/include -IMiddlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F -IUSB_DEVICE/App -IUSB_DEVICE/Target -Iapplication/include -Os -g3 -ffunction-sections -fdata-sections -Wall -MMD -MP -c Core/Src/stm32f4xx_hal_msp.c -o build-dev-gps/Core/Src/stm32f4xx_hal_msp.o
+make[1]: arm-none-eabi-gcc: Нет такого файла или каталога
+make[1]: *** [Makefile:181: build-dev-gps/Core/Src/stm32f4xx_hal_msp.o] Ошибка 127
+make[1]: выход из каталога «/home/mint/TYT/Phantom-13.11.2026/MDUV380_firmware»
+make: *** [Makefile:227: rebuild] Ошибка 2

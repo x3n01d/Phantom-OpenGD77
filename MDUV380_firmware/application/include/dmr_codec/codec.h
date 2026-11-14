@@ -1,0 +1,104 @@
+/*
+ * Copyright (C) 2019 Kai Ludwig, DG4KLU
+ *           (C) 2020-2025 Roger Clark, VK3KYY / G4KYF
+ *
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
+ *    in the documentation and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * 4. Use of this source code or binary releases for commercial purposes is strictly forbidden. This includes, without limitation,
+ *    incorporation in a commercial product or incorporation into a product or project which allows commercial use.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+ * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ */
+
+#ifndef _OPENGD77_CODEC_H_
+#define _OPENGD77_CODEC_H_
+
+#include "hardware/HR-C6000.h"
+
+#include "functions/sound.h"
+
+
+#if defined(PLATFORM_MD9600) || defined(PLATFORM_MDUV380)  || defined(PLATFORM_MD380) || defined(PLATFORM_RT84_DM1701)
+#define CODEC_LOCATION_1 0x807537C
+#else
+#define CODEC_LOCATION_1 0x4400
+#define CODEC_LOCATION_2 0x54000
+#endif
+#define CODEC_DECODE_CONFIG_DATA_LENGTH 0x7ec
+#define CODEC_ENCODE_CONFIG_DATA_LENGTH 0x2000
+#define CODEC_ECC_CONFIG_DATA_LENGTH 0x100
+
+#define QUAUX(X) #X
+#define QU(X) QUAUX(X)
+
+#if defined(PLATFORM_MD9600) || defined(PLATFORM_MDUV380) || defined(PLATFORM_MD380)  || defined(PLATFORM_RT84_DM1701)
+#define AMBE_DECODE 0x08075954;
+#define AMBE_ENCODE 0x080754ac;
+#define AMBE_ENCODE_ECC 0x08075864;
+#else
+#define AMBE_DECODE 0x0005543D;
+#define AMBE_ENCODE 0x00054F94;
+#define AMBE_ENCODE_ECC 0x0005534C;
+#endif
+/* Working state of the AMBE codec blob. The TX side (encoder + its FEC encoder) and the
+ * RX side (decoder, also used for voice prompts) are never live at the same time: the radio
+ * is half duplex, voice prompts are terminated before any TX starts, and codecInit() rebuilds
+ * the state from the flash init images at the start of every stream. So the decoder state
+ * overlays the encoder state and only the larger (TX) side costs SRAM: 8448 bytes instead
+ * of 10476. Because of the overlay the two init images cannot both be loaded at once:
+ * codecInit() only marks the state invalid and the first decode or encode call of a
+ * stream loads the image it needs (codecStateMode in codec.c). The blob addresses this state only through the pointers passed in r1
+ * (codec_interface.c); it does not depend on fixed RAM addresses (dmr_data.c, proven on-air). */
+typedef union
+{
+	struct
+	{
+		uint8_t encode[CODEC_ENCODE_CONFIG_DATA_LENGTH];
+		uint8_t ecc[CODEC_ECC_CONFIG_DATA_LENGTH];
+	} tx;
+	uint8_t decode[CODEC_DECODE_CONFIG_DATA_LENGTH];
+} codecState_t;
+
+extern codecState_t codecState;
+
+typedef enum
+{
+	CODEC_STATE_NONE = 0,   // neither image loaded (after codecInit)
+	CODEC_STATE_DECODE,     // codecState.decode holds the decoder image
+	CODEC_STATE_ENCODE      // codecState.tx holds the encoder + FEC images
+} codecStateMode_t;
+
+// Load the decoder (resp. encoder) init image unless it is already the live one.
+// codecDecode() / codecEncodeBlock() call these on every entry; cheap when already loaded.
+void codecPrepareDecode(void);
+void codecPrepareEncode(void);
+
+#define ambebuffer_encode      (codecState.tx.encode)
+#define ambebuffer_encode_ecc  (codecState.tx.ecc)
+#define ambebuffer_decode      (codecState.decode)
+
+void initFrame(uint8_t *indata, uint16_t bitbufferDecode[49]);
+void codecInit(bool fromVoicePrompts);
+bool codecIsAvailable(void);
+void codecInitInternalBuffers(void);
+void codecDecode(uint8_t *indata_ptr, int numbBlocks);
+void codecEncode(uint8_t *outdata_ptr, int numbBlocks);
+void codecEncodeBlock(uint8_t *outdata_ptr);
+
+#endif /* _OPENGD77_CODEC_H_ */

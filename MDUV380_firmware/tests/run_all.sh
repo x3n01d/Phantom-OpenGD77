@@ -1,0 +1,32 @@
+#!/bin/sh
+# Build and run every host test in tests/. Run from MDUV380_firmware/. Exit status = number of
+# failing tests. Each test's build line is the one in its own header; this just centralises them.
+cd "$(dirname "$0")/.." || exit 1
+OUT=${TMPDIR:-/tmp}/opengd77-tests
+mkdir -p "$OUT"
+CRYPTO="application/source/crypto/dmr_aes.c"
+CMAC="application/source/crypto/dmr_cmac.c"
+HOOK="application/source/crypto/dmr_aes_hook.c"
+fails=0
+run() {
+    name=$1; shift
+    if gcc -O2 -Wall -o "$OUT/$name" "$@" && "$OUT/$name" > "$OUT/$name.log" 2>&1; then
+        echo "PASS $name: $(tail -1 "$OUT/$name.log")"
+    else
+        echo "FAIL $name (see $OUT/$name.log)"; tail -20 "$OUT/$name.log"; fails=$((fails + 1))
+    fi
+}
+run test_dmr_aes      -Iapplication/include -Iapplication/include/crypto tests/test_dmr_aes.c $CRYPTO
+run test_emb_sb       -Iapplication/include -Iapplication/include/crypto tests/test_emb_sb.c $CRYPTO
+run test_le_mi        -Iapplication/include -Iapplication/include/crypto tests/test_le_mi.c $CRYPTO
+run test_rx_bootstrap -Itests/stubs -Iapplication/include tests/test_rx_bootstrap.c $HOOK $CRYPTO
+run test_rx_bootstrap_diag -DDMR_AES_DIAG_RX -Itests/stubs -Iapplication/include tests/test_rx_bootstrap.c $HOOK $CRYPTO
+run test_rx_stale_pi  -Itests/stubs -Iapplication/include tests/test_rx_stale_pi.c $HOOK $CRYPTO
+run test_tx_state     -Itests/stubs -Iapplication/include tests/test_tx_state.c $HOOK $CRYPTO
+run test_sms_rx       -DENABLE_DMR_DATA -Itests/stubs -Iapplication/include tests/test_sms_rx.c application/source/functions/dmr_sms.c $HOOK $CRYPTO
+run test_scanreject   -DENABLE_FAST_SCAN -Iapplication/include tests/test_scanreject.c application/source/functions/scanreject.c
+run test_prov_crypto  -DENABLE_REMOTE_PROVISION -Iapplication/include -Iapplication/include/crypto tests/test_prov_crypto.c $CMAC $CRYPTO
+run test_prov_rx      -DENABLE_DMR_DATA -DENABLE_REMOTE_PROVISION -Itests/stubs -Iapplication/include tests/test_prov_rx.c application/source/functions/dmr_prov.c application/source/functions/dmr_sms.c $HOOK $CRYPTO $CMAC
+run test_sms_rx_prov  -DENABLE_DMR_DATA -DENABLE_REMOTE_PROVISION -Itests/stubs -Iapplication/include tests/test_sms_rx.c tests/stubs/prov_stubs.c application/source/functions/dmr_sms.c application/source/functions/dmr_prov.c $HOOK $CRYPTO $CMAC
+echo "$fails failing test program(s)"
+exit $fails
