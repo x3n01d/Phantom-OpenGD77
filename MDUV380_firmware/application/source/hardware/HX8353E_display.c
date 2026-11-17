@@ -1581,7 +1581,7 @@ void displayGetForegroundAndBackgroundColours(uint16_t *fgNativeColour, uint16_t
 }
 
 #if defined(HAS_COLOURS)
-#if defined(ENABLE_TA2TWC_SCREENS)
+#if 0 /* Phantom: keep the stock default theme, only the TA2TWC screens are wanted */
 // TA2TWC screens: light texts on a dark blue background, used until the user stores his own theme with the CPS or the Theme options.
 static const uint32_t THEME_DEFAULT_COLOURS[THEME_ITEM_MAX] =
 {

@@ -237,7 +237,29 @@ void uiNotificationRefresh(void)
 #if defined(HAS_TELEMETRY)
 				displayThemeApply(THEME_ITEM_FG_RSSI_BAR, THEME_ITEM_BG_NOTIFICATION); // same colour as the other level bars
 #endif
-				displayFillRect(XBAR, (YBAR + 2), bargraph, SQUELCH_BAR_H, false);
+				// Phantom: coloured level bar (blue -> green -> yellow -> red)
+				{
+					static const uint32_t phantomBarColours[8] = { 0x00C8FFU, 0x00FF00U, 0x7FFF00U, 0xFFFF00U, 0xFFA500U, 0xFF4500U, 0xFF0000U, 0xFF00FFU };
+					uint16_t phantomBarSaved = themeItems[DAY][THEME_ITEM_FG_RSSI_BAR];
+					int16_t phantomBarSegW = (totalBarLength / 8);
+
+					for (int phantomBarSeg = 0; phantomBarSeg < 8; phantomBarSeg++)
+					{
+						int16_t phantomBarX = (XBAR + (phantomBarSeg * phantomBarSegW));
+						int16_t phantomBarW = ((phantomBarSeg == 7) ? (totalBarLength - (7 * phantomBarSegW)) : phantomBarSegW);
+
+						if (bargraph > (phantomBarSeg * phantomBarSegW))
+						{
+							int16_t phantomBarFilled = MIN(phantomBarW, (bargraph - (phantomBarSeg * phantomBarSegW)));
+
+							themeItems[DAY][THEME_ITEM_FG_RSSI_BAR] = PLATFORM_COLOUR_FORMAT_SWAP_BYTES(RGB888_TO_PLATFORM_COLOUR_FORMAT(phantomBarColours[phantomBarSeg]));
+							displayThemeApply(THEME_ITEM_FG_RSSI_BAR, THEME_ITEM_BG_NOTIFICATION);
+							displayFillRect(phantomBarX, (YBAR + 2), phantomBarFilled, SQUELCH_BAR_H, false);
+						}
+					}
+
+					themeItems[DAY][THEME_ITEM_FG_RSSI_BAR] = phantomBarSaved;
+				}
 			}
 			break;
 

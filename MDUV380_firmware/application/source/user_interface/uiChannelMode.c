@@ -40,6 +40,14 @@
 #endif
 #include "interfaces/gps.h"
 
+// Phantom: VFO sweep entry points
+extern void uiVFOModeLoadChannelData(bool forceAPRSReset);
+extern void sweepScanInit(void);
+
+bool phantomSweepFromChannel = false;
+CodeplugChannel_t phantomSavedVfo;
+Channel_t phantomSavedVfoNum;
+
 #if defined(HAS_COLOURS)
 #define NAME_BUFFER_LEN   25
 #else
@@ -1798,6 +1806,28 @@ static void handleEvent(uiEvent_t *ev)
 				uiChannelModeUpdateScreen(0);
 				announceItem(PROMPT_SEQUENCE_TS, PROMPT_THRESHOLD_1);
 			}
+		}
+		else if (KEYCHECK_LONGDOWN(ev->keys, KEY_HASH) && (KEYCHECK_LONGDOWN_REPEAT(ev->keys, KEY_HASH) == false))
+		{
+			// Phantom: open the spectrum for the selected channel, keeping the VFO
+			// so it can be restored when the sweep exits.
+			phantomSavedVfoNum = (Channel_t)nonVolatileSettings.currentVFONumber;
+			codeplugGetVFO_ChannelData(&phantomSavedVfo, phantomSavedVfoNum);
+			CodeplugChannel_t phantomVfo = phantomSavedVfo;
+			phantomVfo.rxFreq = currentChannelData->rxFreq;
+			phantomVfo.txFreq = currentChannelData->txFreq;
+			codeplugSetVFO_ChannelData(&phantomVfo, phantomSavedVfoNum);
+			phantomSweepFromChannel = true;
+
+			soundSetMelody(MELODY_KEY_LONG_BEEP);
+			nextKeyBeepMelody = NULL;
+			ev->keys.event &= ~(KEY_MOD_LONG | KEY_MOD_DOWN | KEY_MOD_PRESS | KEY_MOD_UP);
+			ev->keys.key = 0;
+
+			menuSystemSetCurrentMenu(UI_VFO_MODE);
+			uiVFOModeLoadChannelData(true);
+			sweepScanInit();
+			return;
 		}
 		else if (KEYCHECK_LONGDOWN(ev->keys, KEY_HASH) && (KEYCHECK_LONGDOWN_REPEAT(ev->keys, KEY_HASH) == false))
 		{

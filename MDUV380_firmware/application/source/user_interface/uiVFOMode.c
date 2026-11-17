@@ -31,6 +31,11 @@
 #include "hardware/radioHardwareInterface.h"
 #endif
 #include "functions/trx.h"
+#include "functions/codeplug.h"
+
+extern bool phantomSweepFromChannel;
+extern CodeplugChannel_t phantomSavedVfo;
+extern Channel_t phantomSavedVfoNum;
 #include "functions/rxPowerSaving.h"
 #include "functions/spectrum.h"   /* SCANPROF_*: dev-only scan-step profiler, no-ops otherwise */
 #include "functions/scanreject.h" /* the fast reject; compiles to nothing in a stock build */
@@ -84,7 +89,7 @@ static void stepFrequency(int increment);
 static void toneScan(void);
 static void scanning(void);
 static void scanInit(void);
-static void sweepScanInit(void);
+void sweepScanInit(void);
 static void sweepScanStep(void);
 static void updateTrxID(void );
 static void setCurrentFreqToScanLimits(void);
@@ -1427,6 +1432,7 @@ static uint16_t dualWatchStepMs(void)
 {
 	static const uint16_t speeds[DUALWATCH_NUM_SPEEDS] = DUALWATCH_SPEED_TABLE;
 	uint16_t idx = ((((uint16_t)nonVolatileSettings.dualWatchOptions) & DUALWATCH_SPEED_MASK) >> DUALWATCH_SPEED_SHIFT);
+	if (idx == 0U) { idx = 1U; } /* Phantom: 'Default' -> 90 ms, faster dual watch */
 
 	return ((speeds[idx] != 0U) ? speeds[idx] : (uint16_t)settingsGetScanStepTimeMilliseconds());
 }
@@ -1569,6 +1575,12 @@ void uiVFOModeStopScanning(void)
 	else if (screenOperationMode[nonVolatileSettings.currentVFONumber] == VFO_SCREEN_OPERATION_SWEEP)
 	{
 		screenOperationMode[nonVolatileSettings.currentVFONumber] = VFO_SCREEN_OPERATION_NORMAL;
+		if (phantomSweepFromChannel)
+		{
+			codeplugSetVFO_ChannelData(&phantomSavedVfo, phantomSavedVfoNum);
+			phantomSweepFromChannel = false;
+			menuSystemSetCurrentMenu(UI_CHANNEL_MODE);
+		}
 #if defined(ENABLE_FAST_SCAN)
 		vfoSweepRetuneFull(currentChannelData->rxFreq);   // forces the full retune the bare sweep retunes owe
 		// Hand the arena back; the traces go with it.
@@ -5008,7 +5020,7 @@ void uiVFOSweepScanModePause(bool pause, bool forceDigitalOnPause)
 	}
 }
 
-static void sweepScanInit(void)
+void sweepScanInit(void)
 {
 	trxTerminateCheckAnalogSquelch(RADIO_DEVICE_PRIMARY);
 

@@ -184,6 +184,19 @@ static void buildSMeterText(char *buffer, size_t bufferLen, int16_t dBm)
 	}
 }
 
+#if !defined(HAS_TELEMETRY)
+/* Fallback: the telemetry screens (and their helper) are not built in. */
+uint8_t uiTelemetryNoiseToQuality(uint8_t noiseRaw)
+{
+	if (noiseRaw >= 64U)
+	{
+		return 0;
+	}
+
+	return (uint8_t)(((64U - noiseRaw) * 100U) / 64U);
+}
+#endif
+
 void uiAnalogMeterDraw(const uiAnalogMeterData_t *data)
 {
 	char buffer[SCREEN_LINE_BUFFER_SIZE];

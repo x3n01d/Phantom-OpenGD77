@@ -2311,6 +2311,22 @@ void uiUtilityRenderHeader(bool isVFODualWatchScanning, bool isVFOSweepScanning,
 		{
 			snprintf(buffer, SCREEN_LINE_BUFFER_SIZE, "%d%%", batteryPercentage);
 			displayPrintCore(0, DISPLAY_Y_POS_HEADER, buffer, (apoEnabled ? FONT_SIZE_1_BOLD : FONT_SIZE_1), TEXT_ALIGN_RIGHT, ((batteryIsLow ? scanBlinkPhase : false)));// Display battery percentage at the right
+
+			// Phantom: small battery icon next to the percentage
+			{
+				int16_t phantomTw = (int16_t)(strlen(buffer) * 6);
+				int16_t phantomX = (DISPLAY_SIZE_X - phantomTw) - 11;
+				int16_t phantomY = DISPLAY_Y_POS_HEADER + 1;
+
+				displayDrawRect(phantomX, phantomY, 8, 6, true);
+				displayFillRect(phantomX + 8, phantomY + 1, 2, 4, false);
+
+				if (batteryPercentage > 0)
+				{
+					displayFillRect(phantomX + 1, phantomY + 1, ((batteryPercentage * 6) / 100), 4, false);
+				}
+			}
+
 		}
 	}
 

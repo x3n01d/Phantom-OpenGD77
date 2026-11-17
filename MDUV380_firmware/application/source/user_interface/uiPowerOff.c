@@ -29,7 +29,7 @@
 #include "user_interface/menuSystem.h"
 #include "user_interface/uiLocalisation.h"
 #include "user_interface/uiTelemetry.h"
-#if defined(HAS_TELEMETRY)
+#if 0 /* Phantom: keep the stock power-off screen */
 #include "user_interface/uiBootAnimation.h"
 #endif
 #if defined(PLATFORM_MD9600) || defined(PLATFORM_MD380) || defined(PLATFORM_MDUV380) || defined(PLATFORM_RT84_DM1701) || defined(PLATFORM_MD2017)
@@ -40,7 +40,7 @@
 static void updateScreen(void);
 static void handleEvent(uiEvent_t *ev);
 static uint32_t initialEventTime;
-#if defined(HAS_TELEMETRY)
+#if 0 /* Phantom: keep the stock power-off screen */
 #define POWEROFF_ANIMATION_FRAME_MILLISECONDS 50U
 const uint32_t POWEROFF_DURATION_MILLISECONDS = SHUTDOWN_ANIMATION_DURATION;
 static uint32_t lastFrameTime;
@@ -60,7 +60,7 @@ menuStatus_t uiPowerOff(uiEvent_t *ev, bool isFirstRun)
 #endif
 
 		initialEventTime = ev->time;
-#if defined(HAS_TELEMETRY)
+#if 0 /* Phantom: keep the stock power-off screen */
 		lastFrameTime = ev->time;
 #endif
 		updateScreen();
@@ -81,7 +81,7 @@ static void updateScreen(void)
 #endif
 	uint16_t fontHeight = (FONT_SIZE_3_HEIGHT * (dblHeight ? 2 : 1));
 
-#if defined(HAS_TELEMETRY)
+#if 0 /* Phantom: keep the stock power-off screen */
 	// Animated shutdown screen, redrawn by handleEvent()
 	uiBootAnimationDrawShutdown((lastFrameTime - initialEventTime), POWEROFF_DURATION_MILLISECONDS);
 	displayRender();
@@ -123,7 +123,7 @@ static void handleEvent(uiEvent_t *ev)
 	{
 		powerOffFinalStage(false, false);
 	}
-#if defined(HAS_TELEMETRY)
+#if 0 /* Phantom: keep the stock power-off screen */
 	else if ((ev->time - lastFrameTime) >= POWEROFF_ANIMATION_FRAME_MILLISECONDS)
 	{
 		lastFrameTime = ev->time;

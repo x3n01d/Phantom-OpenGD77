@@ -1,114 +1,83 @@
-# Phantom Firmware (OpenGD77-AES256 fork)
+# Phantom (TYT MD-UV390, 10W)
 
-Custom firmware for **TYT MD-UV390 Plus 10W** and **TYT MD-UV380 Plus 10W**.
+An experimental OpenGD77-derived firmware for the **TYT MD-UV390 (10W)** that adds
+**TYT-compatible DMRA AES-256 encrypted voice** — interoperable with the stock TYT "Universal" AES256
+firmware. Stock OpenGD77 has no encryption; this is a reverse-engineering / interop project, not an
+upstream feature.
 
-Phantom is a modified build of [OpenGD77-AES256](https://github.com/dondch/OpenGD77-AES256)
-with AES-256 encryption support, rebranding, UI color defaults and build fixes.
+This rebuild retains the fork’s Plus-derived 10W hardware configuration because you report that it already runs on your non-Plus MD-UV390 10W. All the normal OpenGD77 functionality
+(DMR/FM transmit + receive, hotspot, etc.) is unchanged. AES-256 is always compiled in: every build of
+this fork is an AES build.
 
-## Features
-- Advanced AES-256 DMR encryption support
-- Rebranded firmware: display name **Phantom**
-- Custom authors: **x3n01d** and **checkra1n**
-- Build date is generated automatically at compile time
-- Default home-screen colors: **RX line red**, **TX line green**
-- Clean build system: `make` wipes the `build/` directory before compiling
-- Calibration menu kept intact (250 mW / 1 W / 5 W / 10 W)
-- Verified hardware path: Plus 10W configuration (tested working on a non-Plus MD-UV390 10W)
+## ⚠️ Legal
 
-## Supported radios
-- TYT MD-UV390 **Plus 10W**
-- TYT MD-UV380 **Plus 10W**
+AES-256 encrypted voice is **illegal on amateur radio bands in most countries**; it is only valid on
+licensed commercial / PMR allocations. Use this only where you are licensed to transmit encrypted
+voice. The source and binaries are also **non-commercial use only** — see [`license.txt`](license.txt).
 
-> The firmware uses the Plus 10W hardware code path. It has been reported to run
-> correctly on a standard MD-UV390 10W unit.
+## What it adds
 
-## Important note about DMR / AMBE
-The `.bin` produced by the compiler does **not** include the AMBE codec.
-Before flashing for DMR use, merge it with the official **MD-9600 V5** donor
-through the bootloader.
+Implements the standardized **DMR Association AES-256** scheme (Motorola/Hytera-compatible, ETSI TS
+102 361) that the MD-UV390 Plus "Universal" mode uses, so this firmware and a stock TYT radio can
+encrypt/decrypt each other:
 
-## Calibration
-Use a dummy load and a wattmeter. Calibrate 250 mW, 1 W, 5 W and 10 W points,
-then save with **SK2 + Green**.
+- **AES-256 in OFB mode**, the keystream XORed onto the decoded 49-bit AMBE voice parameters.
+- A 32-bit **Message Indicator (MI)** carried in the PI header, expanded to a 128-bit IV by an LFSR
+  (`dmr_lfsr128d`) and advanced one step per superframe.
+- The MI also conveyed **in-band in the AMBE codeword bits** (Late-Entry MI, Golay(24,12)+CRC4), with
+  the call announced over the air via the encrypted-call LC (FID `0x10` / SO `0x40`) and the burst-F
+  EMB **Late-Entry Single Block** (alg/key).
+
+### AES feature status
+
+The AES feature was originally validated by this fork on MD-UV390 Plus hardware. You report that this 10W configuration runs on your non-Plus MD-UV390; RF calibration still needs measurement on the radio.
+
+- **TX:** a bone-stock TYT MD-UV390 decodes this firmware's encrypted transmissions to clear voice —
+  full interoperable signalling (keystream + Late-Entry MI + encrypted-call LC + EMB Single Block +
+  PI-Header preamble).
+- **RX:** decrypts a stock TYT's AES-256 voice to clear audio, including **rapid back-to-back calls**
+  (the receiver locks the new call's MI directly from the in-band Late-Entry, like a stock receiver).
+- **Keys:** stored persistently in the SPI-flash custom-data region (survive reboots and firmware
+  flashes), loaded via a host tool over the OpenGD77 CPS USB protocol.
+
+## Build & flash
+
+The default `make` target removes the old build directory before compiling. See **[BUILD.md](BUILD.md)** for the full toolchain, the required AMBE codec donor (MD-9600 V5), and
+DFU flashing. In short:
+
+```sh
+cd MDUV380_firmware
+make -j$(nproc)
+python3 tools/opengd77_stm32_firmware_loader.py -s <MD9600-V5-donor.bin> \
+        -f build/openuv380-10w.bin -m MD-UV380
+```
+
+DMR needs the proprietary AMBE+2 vocoder, which is **not** present in this (or any OpenGD77)
+source/binary; the loader merges it from an **MD-9600 V5** donor at flash time (see BUILD.md).
+**Do not flash a 5W build to a 10W radio.**
+
+### Optional features and diagnostics
+
+Everything beyond AES voice is behind an off-by-default build flag: encrypted SMS, fast analog scan, the dual
+screen and the TA2TWC screens as features, plus the bench and AES diagnostics. The flags, their measured RAM
+cost and the named build profiles (`make PROFILE=full`, `make PROFILE=dev-aes`, ...) are documented in
+[BUILD.md, "Build flags"](BUILD.md#build-flags).
+
+## License
+
+This fork inherits the OpenGD77 license — **BSD-3-clause style with a non-commercial clause**. The full
+text is in [`license.txt`](license.txt); commercial use of the source or binaries is forbidden. All
+upstream source files and copyright headers are preserved.
 
 ## Credits
-- OpenGD77 project and contributors
-- Phantom modifications: **x3n01d**, **checkra1n**
 
----
+Phantom firmware maintainers: **x3n01d** and **checkra1n**. The on-radio credits list shows only these two names; upstream copyright and license notices remain in the source and documentation.
 
-# Прошивка Phantom (форк OpenGD77-AES256)
 
-Кастомна прошивка для **TYT MD-UV390 Plus 10W** та **TYT MD-UV380 Plus 10W**.
+OpenGD77 was conceived by Kai DG4KLU and developed by Roger Clark VK3KYY, latterly assisted by Daniel
+F1RMB, Alex DL4LEX, Colin G4EML and many others (lead developer / source gatekeeper: Roger VK3KYY) —
+see the upstream project for the full contributor list. This fork only adds the DMRA AES-256 layer on
+top of their work. The DMRA AES scheme reference implementation is
+[DSD-FME](https://github.com/lwvmobile/dsd-fme) by lwvmobile.
 
-Phantom — це модифікована збірка
-з підтримкою розширеного списку ключiв AES-256, ребрендингом, кольорами інтерфейсу за замовчуванням і виправленнями збірки.
-
-## Можливості
-- Розширена підтримка AES-256 шифрування DMR
-- Ребрендинг прошивки: відображувана назва **Phantom**
-- Автори: **x3n01d** та **checkra1n**
-- Дата збірки генерується автоматично під час компіляції
-- Кольори головного екрана за замовчуванням: **рядок RX — червоний**, **рядок TX — зелений**
-- Чиста система збірки: `make` видаляє каталог `build/` перед компіляцією
-- Меню калібрування збережено (250 мВт / 1 Вт / 5 Вт / 10 Вт)
-- Перевірений апаратний шлях: конфігурація Plus 10W (працює на звичайному MD-UV390 10W)
-
-## Підтримувані рації
-- TYT MD-UV390 **Plus 10W**
-- TYT MD-UV380 **Plus 10W**
-
-> Прошивка використовує апаратний кодовий шлях Plus 10W. Повідомлялося, що вона
-> коректно працює на стандартному MD-UV390 10W.
-
-## Важливо про DMR / AMBE
-`.bin`, створений компілятором, **не** містить кодек AMBE.
-Перед прошиванням для DMR об'єднайте його з офіційним донором **MD-9600 V5**
-через завантажувач.
-
-## Калібрування
-Використовуйте еквівалент навантаження та ватметр. Калібруйте точки
-250 мВт, 1 Вт, 5 Вт і 10 Вт, потім зберігайте комбінацією **SK2 + Green**.
-
-## Подяки
-- Проєкт OpenGD77 та контриб'ютори
-- Модифікації Phantom: **x3n01d**, **checkra1n**
-
----
-
-# Прошивка Phantom (форк OpenGD77-AES256)
-
-Кастомная прошивка для **TYT MD-UV390 Plus 10W** и **TYT MD-UV380 Plus 10W**.
-
-Phantom — модифицированная сборка
-с поддержкой расширеных ключей AES-256, ребрендингом, цветами интерфейса по умолчанию и исправлениями сборки.
-
-## Возможности
-- Расширеная поддержка AES-256 шифрования DMR
-- Ребрендинг прошивки: отображаемое имя **Phantom**
-- Авторы: **x3n01d** и **checkra1n**
-- Дата сборки генерируется автоматически при компиляции
-- Цвета главного экрана по умолчанию: **строка RX — красная**, **строка TX — зелёная**
-- Чистая система сборки: `make` удаляет каталог `build/` перед компиляцией
-- Меню калибровки сохранено (250 мВт / 1 Вт / 5 Вт / 10 Вт)
-- Проверенный аппаратный путь: конфигурация Plus 10W (работает на обычном MD-UV390 10W)
-
-## Поддерживаемые рации
-- TYT MD-UV390 **Plus 10W**
-- TYT MD-UV380 **Plus 10W**
-
-> Прошивка использует аппаратный кодовый путь Plus 10W. Сообщалось, что она
-> корректно работает на стандартном MD-UV390 10W.
-
-## Важно про DMR / AMBE
-`.bin`, созданный компилятором, **не** содержит кодек AMBE.
-Перед прошивкой для DMR объедините его с официальным донором **MD-9600 V5**
-через загрузчик.
-
-## Калибровка
-Используйте эквивалент нагрузки и ваттметр. Калибруйте точки
-250 мВт, 1 Вт, 5 Вт и 10 Вт, затем сохраняйте комбинацией **SK2 + Green**.
-
-## Благодарности
-- Проект OpenGD77 и контрибьюторы
-- Модификации Phantom: **x3n01d**, **checkra1n**
+User guide (general OpenGD77 operation): https://github.com/LibreDMR/OpenGD77_UserGuide

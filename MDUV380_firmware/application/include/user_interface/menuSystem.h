@@ -35,7 +35,7 @@
 #include "functions/voicePrompts.h"
 
 
-#if defined(ENABLE_TA2TWC_SCREENS) && (defined(PLATFORM_MDUV380) || defined(PLATFORM_RT84_DM1701))
+#if 0 /* Phantom: keep the stock (bigger) menu list */
 // Compact menu lists: single height font, more entries on the screen
 #if defined(PLATFORM_VARIANT_DM1701)
 #define MENU_MAX_DISPLAYED_ENTRIES 8 // 120 rows

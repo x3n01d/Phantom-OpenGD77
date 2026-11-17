@@ -790,6 +790,7 @@ static void goToLine(int line)
 		settingsSet(nonVolatileSettings.currentVFONumber, (uint8_t)line);
 		currentChannelData = &settingsVFOChannel[line];
 		menuSystemSetCurrentMenu(UI_VFO_MODE);
+		rxPowerSavingSetState(ECOPHASE_POWERSAVE_INACTIVE); /* Phantom: immediate audio */
 	}
 }
 

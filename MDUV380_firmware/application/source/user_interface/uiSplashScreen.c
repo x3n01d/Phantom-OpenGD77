@@ -44,7 +44,7 @@ static void pincodeAudioAlert(void);
 const uint32_t SILENT_PROMPT_HOLD_DURATION_MILLISECONDS = 2000;
 static uint32_t initialEventTime;
 
-#if defined(HAS_TELEMETRY)
+#if 0 /* Phantom: keep the stock splash screen */
 static bool bootAnimationIsActive = false;
 static uint32_t bootAnimationLastFrameTime;
 static char bootAnimationSubtitle[SCREEN_LINE_BUFFER_SIZE];
@@ -159,7 +159,7 @@ static void updateScreen(bool isFirstRun)
 #endif
 	}
 
-#if defined(HAS_TELEMETRY)
+#if 0 /* Phantom: keep the stock splash screen */
 	bootAnimationIsActive = !customDataHasImage;
 
 	if (bootAnimationIsActive)
@@ -213,7 +213,7 @@ static void handleEvent(uiEvent_t *ev)
 		return;
 	}
 
-#if defined(HAS_TELEMETRY)
+#if 0 /* Phantom: keep the stock splash screen */
 	if (bootAnimationIsActive)
 	{
 		if ((ev->time - bootAnimationLastFrameTime) >= BOOT_ANIMATION_FRAME_INTERVAL_MS)
